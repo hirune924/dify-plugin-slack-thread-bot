@@ -9,6 +9,7 @@ from dify_plugin import Endpoint
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+MAX_CACHE = int(os.getenv("MAX_CACHE", 10))
 
 # ref: https://github.com/fla9ua/markdown_to_mrkdwn
 class SlackMarkdownConverter:
@@ -193,7 +194,7 @@ class SlackMarkdownConverter:
 
 class SlackEndpoint(Endpoint):
     CACHE_PREFIX = "thread-cache"
-    CACHE_DURATION = 60 * 60 * 24  # 1 day
+    CACHE_DURATION = 60 * 60 * 1  # 1 hour
 
     def _load_cached_history(self, channel: str, thread_ts: str):
         key = f"{self.CACHE_PREFIX}-{channel}-{thread_ts}"

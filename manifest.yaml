@@ -1,4 +1,4 @@
-version: 0.0.5
+version: 0.0.6+custom
 type: plugin
 author: solaoi
 name: slack-thread-bot
@@ -33,7 +33,7 @@ resource:
       enabled: true
     storage:
       enabled: true
-      size: 1048576
+      size: 10485760
 plugins:
   endpoints:
     - group/slack.yaml
