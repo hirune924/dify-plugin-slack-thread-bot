@@ -9,8 +9,6 @@ from dify_plugin import Endpoint
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-MAX_CACHE = int(os.getenv("MAX_CACHE", 10))
-
 # ref: https://github.com/fla9ua/markdown_to_mrkdwn
 class SlackMarkdownConverter:
     """
