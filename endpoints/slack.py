@@ -358,7 +358,7 @@ class SlackEndpoint(Endpoint):
         """
         Invokes the endpoint with the given request.
         """
-        # 定期クリーンアップチェック
+        # Periodic cleanup check
         self._periodic_cleanup_if_needed()
         
         # Check if this is a retry and if we should ignore it
