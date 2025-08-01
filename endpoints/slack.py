@@ -196,26 +196,26 @@ class SlackEndpoint(Endpoint):
     CLEANUP_INTERVAL = 60 * 60 * 24  # 24 hours
 
     def _add_key_to_registry(self, key: str):
-        """キーをレジストリに追加"""
-        if key == "__keys__":  # 無限ループ防止
+        """Add key to registry"""
+        if key == "__keys__":  # Prevent infinite loop
             return
         
         try:
-            # 現在のレジストリを取得
+            # Get current registry
             registry = self._get_key_registry()
             
-            # キーを追加（既存の場合は時間を更新）
-            registry[key] = int(time.time())  # last_update時刻
+            # Add key (update time if existing)
+            registry[key] = int(time.time())  # last_update time
             registry["__last_updated"] = int(time.time())
             
-            # レジストリを保存
+            # Save registry
             self.session.storage.set("__keys__", json.dumps(registry).encode("utf-8"))
             
         except Exception as e:
             print(f"Error adding key to registry: {e}")
 
     def _remove_key_from_registry(self, key: str):
-        """キーをレジストリから削除"""
+        """Remove key from registry"""
         if key == "__keys__":
             return
         
@@ -231,7 +231,7 @@ class SlackEndpoint(Endpoint):
             print(f"Error removing key from registry: {e}")
 
     def _get_key_registry(self) -> dict:
-        """キーレジストリを取得"""
+        """Get key registry"""
         try:
             raw = self.session.storage.get("__keys__")
             if raw:
@@ -242,7 +242,7 @@ class SlackEndpoint(Endpoint):
             return {"__last_updated": int(time.time())}
 
     def _get_all_keys(self) -> List[str]:
-        """全てのキーを取得（__last_updated以外）"""
+        """Get all keys (except __last_updated)"""
         try:
             registry = self._get_key_registry()
             return [k for k in registry.keys() if k != "__last_updated"]
@@ -250,25 +250,25 @@ class SlackEndpoint(Endpoint):
             return []
 
     def _cleanup_storage(self, cleanup_percentage: float = 0.5):
-        """storageをクリーンアップ（古いキーから削除）"""
+        """Clean up storage (delete old keys)"""
         try:
             registry = self._get_key_registry()
             
-            # __last_updated以外のキーを取得
+            # Get keys other than __last_updated
             keys_with_time = [(k, v) for k, v in registry.items() if k != "__last_updated"]
             
             if not keys_with_time:
                 return
             
-            # 時刻で昇順ソート（古いものから）
+            # Sort by time in ascending order (from oldest)
             keys_with_time.sort(key=lambda x: x[1])
             
-            # 削除するキーの数を計算
+            # Calculate number of keys to delete
             total_keys = len(keys_with_time)
             keys_to_delete = int(total_keys * cleanup_percentage)
             
             if keys_to_delete > 0:
-                # 古いキーから削除
+                # Delete from oldest keys
                 for i in range(keys_to_delete):
                     key_to_delete = keys_with_time[i][0]
                     try:
@@ -283,7 +283,7 @@ class SlackEndpoint(Endpoint):
             print(f"Error during storage cleanup: {e}")
 
     def _should_cleanup_storage(self) -> bool:
-        """24時間間隔でストレージクリーンアップが必要かチェック"""
+        """Check if storage cleanup is needed at 24-hour intervals"""
         try:
             registry = self._get_key_registry()
             last_cleanup = registry.get("__last_cleanup", 0)
@@ -293,13 +293,13 @@ class SlackEndpoint(Endpoint):
             return False
 
     def _periodic_cleanup_if_needed(self):
-        """必要に応じて定期クリーンアップを実行（30%削除）"""
+        """Perform periodic cleanup as needed (30% deletion)"""
         if self._should_cleanup_storage():
             try:
-                # 軽めのクリーンアップ（30%削除）
+                # Light cleanup (30% deletion)
                 self._cleanup_storage(cleanup_percentage=0.3)
                 
-                # クリーンアップ時刻を記録
+                # Record cleanup time
                 registry = self._get_key_registry()
                 registry["__last_cleanup"] = int(time.time())
                 self.session.storage.set("__keys__", json.dumps(registry).encode("utf-8"))
